@@ -1632,6 +1632,54 @@ export class EvalDeltaKeyValue extends BaseModel {
 }
 
 /**
+ * Proof of membership and position of a light block header.
+ */
+export class LightBlockHeaderProof extends BaseModel {
+  /**
+   * The index of the light block header in the vector commitment tree
+   */
+  public index: number | bigint;
+
+  /**
+   * The encoded proof.
+   */
+  public proof: Uint8Array;
+
+  /**
+   * Represents the depth of the tree that is being proven, i.e. the number of edges
+   * from a leaf to the root.
+   */
+  public treedepth: number | bigint;
+
+  /**
+   * Creates a new `LightBlockHeaderProof` object.
+   * @param index - The index of the light block header in the vector commitment tree
+   * @param proof - The encoded proof.
+   * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
+   * from a leaf to the root.
+   */
+  constructor(
+    index: number | bigint,
+    proof: string | Uint8Array,
+    treedepth: number | bigint
+  ) {
+    super();
+    this.index = index;
+    this.proof =
+      typeof proof === 'string'
+        ? new Uint8Array(Buffer.from(proof, 'base64'))
+        : proof;
+    this.treedepth = treedepth;
+
+    this.attribute_map = {
+      index: 'index',
+      proof: 'proof',
+      treedepth: 'treedepth',
+    };
+  }
+}
+
+/**
  *
  */
 export class NodeStatusResponse extends BaseModel {
@@ -2038,80 +2086,35 @@ export class PostTransactionsResponse extends BaseModel {
 }
 
 /**
- * Proof of transaction in a block.
+ * Represents a state proof and its corresponding message
  */
-export class ProofResponse extends BaseModel {
+export class StateProof extends BaseModel {
   /**
-   * Index of the transaction in the block's payset.
+   * Represents the message that the state proofs are attesting to.
    */
-  public idx: number | bigint;
+  public message: Record<string, any>;
 
   /**
-   * Merkle proof of transaction membership.
+   * The encoded StateProof for the message.
    */
-  public proof: Uint8Array;
+  public stateproof: Uint8Array;
 
   /**
-   * Hash of SignedTxnInBlock for verifying proof.
+   * Creates a new `StateProof` object.
+   * @param message - Represents the message that the state proofs are attesting to.
+   * @param stateproof - The encoded StateProof for the message.
    */
-  public stibhash: Uint8Array;
-
-  /**
-   * Represents the depth of the tree that is being proven, i.e. the number of edges
-   * from a leaf to the root.
-   */
-  public treedepth: number | bigint;
-
-  /**
-   * The type of hash function used to create the proof, must be one of:
-   * * sha512_256
-   * * sha256
-   */
-  public hashtype?: string;
-
-  /**
-   * Creates a new `ProofResponse` object.
-   * @param idx - Index of the transaction in the block's payset.
-   * @param proof - Merkle proof of transaction membership.
-   * @param stibhash - Hash of SignedTxnInBlock for verifying proof.
-   * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
-   * from a leaf to the root.
-   * @param hashtype - The type of hash function used to create the proof, must be one of:
-   * * sha512_256
-   * * sha256
-   */
-  constructor({
-    idx,
-    proof,
-    stibhash,
-    treedepth,
-    hashtype,
-  }: {
-    idx: number | bigint;
-    proof: string | Uint8Array;
-    stibhash: string | Uint8Array;
-    treedepth: number | bigint;
-    hashtype?: string;
-  }) {
+  constructor(message: Record<string, any>, stateproof: string | Uint8Array) {
     super();
-    this.idx = idx;
-    this.proof =
-      typeof proof === 'string'
-        ? new Uint8Array(Buffer.from(proof, 'base64'))
-        : proof;
-    this.stibhash =
-      typeof stibhash === 'string'
-        ? new Uint8Array(Buffer.from(stibhash, 'base64'))
-        : stibhash;
-    this.treedepth = treedepth;
-    this.hashtype = hashtype;
+    this.message = message;
+    this.stateproof =
+      typeof stateproof === 'string'
+        ? new Uint8Array(Buffer.from(stateproof, 'base64'))
+        : stateproof;
 
     this.attribute_map = {
-      idx: 'idx',
-      proof: 'proof',
-      stibhash: 'stibhash',
-      treedepth: 'treedepth',
-      hashtype: 'hashtype',
+      message: 'Message',
+      stateproof: 'StateProof',
     };
   }
 }
@@ -2313,6 +2316,85 @@ export class TransactionParametersResponse extends BaseModel {
       genesisId: 'genesis-id',
       lastRound: 'last-round',
       minFee: 'min-fee',
+    };
+  }
+}
+
+/**
+ * Proof of transaction in a block.
+ */
+export class TransactionProofResponse extends BaseModel {
+  /**
+   * Index of the transaction in the block's payset.
+   */
+  public idx: number | bigint;
+
+  /**
+   * Proof of transaction membership.
+   */
+  public proof: Uint8Array;
+
+  /**
+   * Hash of SignedTxnInBlock for verifying proof.
+   */
+  public stibhash: Uint8Array;
+
+  /**
+   * Represents the depth of the tree that is being proven, i.e. the number of edges
+   * from a leaf to the root.
+   */
+  public treedepth: number | bigint;
+
+  /**
+   * The type of hash function used to create the proof, must be one of:
+   * * sha512_256
+   * * sha256
+   */
+  public hashtype?: string;
+
+  /**
+   * Creates a new `TransactionProofResponse` object.
+   * @param idx - Index of the transaction in the block's payset.
+   * @param proof - Proof of transaction membership.
+   * @param stibhash - Hash of SignedTxnInBlock for verifying proof.
+   * @param treedepth - Represents the depth of the tree that is being proven, i.e. the number of edges
+   * from a leaf to the root.
+   * @param hashtype - The type of hash function used to create the proof, must be one of:
+   * * sha512_256
+   * * sha256
+   */
+  constructor({
+    idx,
+    proof,
+    stibhash,
+    treedepth,
+    hashtype,
+  }: {
+    idx: number | bigint;
+    proof: string | Uint8Array;
+    stibhash: string | Uint8Array;
+    treedepth: number | bigint;
+    hashtype?: string;
+  }) {
+    super();
+    this.idx = idx;
+    this.proof =
+      typeof proof === 'string'
+        ? new Uint8Array(Buffer.from(proof, 'base64'))
+        : proof;
+    this.stibhash =
+      typeof stibhash === 'string'
+        ? new Uint8Array(Buffer.from(stibhash, 'base64'))
+        : stibhash;
+    this.treedepth = treedepth;
+    this.hashtype = hashtype;
+
+    this.attribute_map = {
+      idx: 'idx',
+      proof: 'proof',
+      stibhash: 'stibhash',
+      treedepth: 'treedepth',
+      hashtype: 'hashtype',
     };
   }
 }
